@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Followership Style Diagnostic Tool</title>
+            <style>
+                        body { font-family: 'Pretendard', -apple-system, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f9; }
+                        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                        h1, h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+                .section { margin-bottom: 40px; }
+                        .question { margin-bottom: 20px; padding: 15px; border-bottom: 1px solid #eee; }
+                .question p { font-weight: bold; margin-bottom: 10px; }
+                .options { display: flex; gap: 10px; flex-wrap: wrap; }
+                        .likert label { display: flex; flex-direction: column; align-items: center; width: 60px; font-size: 0.8em; cursor: pointer; }
+                        button { background: #3498db; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-size: 1.1em; width: 100%; transition: background 0.3s; margin-top: 20px; }
+                button:hover { background: #2980b9; }
+                        #result { display: none; margin-top: 30px; padding: 25px; border-radius: 12px; background: #ffffff; border: 2px solid #3498db; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+                        .type-badge { display: inline-block; padding: 8px 20px; border-radius: 25px; color: white; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+                .type-A { background: #95a5a6; }
+                .type-B { background: #1abc9c; }
+                .type-C { background: #34495e; }
+                .type-D { background: #e67e22; }
+                        .score-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Followership Style Diagnostic</h1>
+            <p>Based on Gary Yukl's <i>Leadership in Organizations</i> [Chapter 10]. [cite: 1, 14]</p>
+                <p style="color: #666; font-size: 0.95em;">Rate each item based on your typical behavior. (1: Strongly Disagree ~ 5: Strongly Agree)</p>
+                <div class="section">
+                    <div id="followership-diagnostic">Loading questions...</div>
+            </div>
+            <button onclick="calculateResults()">View Results /  </button>
+                <div id="result">
+                    <div id="followership-result"></div>
+            </div>
+        </div>
+        <script>
+            var items = [
+                    "Find out what you are expected to do.",
+                    "Take the initiative to deal with problems.",
+                    "Keep the boss informed about your decisions.",
+                    "Verify the accuracy of information you give the boss.",
+                    "Encourage the boss to provide honest feedback to you.",
+                    "Support efforts to make necessary changes.",
+                    "Show appreciation and provide recognition when appropriate.",
+                    "Challenge flawed plans and proposals made by bosses.",
+                    "Resist inappropriate influence attempts by the boss.",
+                    "Provide upward coaching and counseling when appropriate.",
+                    "Learn to use self-management strategies."
+                ];
+            
+            function init() {
+                    var container = document.getElementById('followership-diagnostic');
+                    if (!container) return;
+                    var html = '';
+                    for (var i = 0; i < items.length; i++) {
+                                html += '<div class="question"><p>' + (i+1) + '. ' + items[i] + '</p><div class="options likert">';
+                                for (var s = 1; s <= 5; s++) {
+                                                html += '<label><input type="radio" name="fq' + i + '" value="' + s + '"' + (s===3?' checked':'') + '>' + s + '</label>';
+                                }
+                                html += '</div></div>';
+                    }
+                    container.innerHTML = html;
+            }
+            
+            function calculateResults() {
+                    var scores = [];
+                    for (var i = 0; i < 11; i++) {
+                                var selected = document.querySelector('input[name="fq' + i + '"]:checked');
+                                if (selected) scores.push(parseInt(selected.value));
+                    }
+                    if (scores.length < 11) {
+                                alert('   !');
+                                return;
+                    }
+                    var support = scores[0] + scores[2] + scores[3] + scores[5] + scores[6];
+                    var proactivity = scores[1] + scores[4] + scores[7] + scores[8] + scores[9] + scores[10];
+                    var isHighSupport = support >= 16;
+                    var isHighProactive = proactivity >= 19;
+                    var type, title, badgeClass;
+                    if (isHighSupport && isHighProactive) {
+                                type = 'B'; title = 'Critical Partner'; badgeClass = 'type-B';
+                    } else if (isHighSupport && !isHighProactive) {
+                                type = 'C'; title = 'Loyal Executor'; badgeClass = 'type-C';
+                    } else if (!isHighSupport && isHighProactive) {
+                                type = 'D'; title = 'Change Agent'; badgeClass = 'type-D';
+                    } else {
+                                type = 'A'; title = 'Passive Supporter'; badgeClass = 'type-A';
+                    }
+                    document.getElementById('followership-result').innerHTML =
+                                '<div style="text-align:center;">' +
+                                '<span class="type-badge ' + badgeClass + '">Type ' + type + '</span>' +
+                                '<h2 style="margin-top:0;color:#2c3e50;">' + title + '</h2>' +
+                                '</div>' +
+                                '<div class="score-box">' +
+                                '<p style="margin:0;"><strong>Support Score ( ):</strong> ' + support + ' / 25</p>' +
+                                '<p style="margin:5px 0 0 0;"><strong>Proactivity Score ( ):</strong> ' + proactivity + ' / 30</p>' +
+                                '</div>';
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').scrollIntoView({behavior:'smooth'});
+            }
+            
+            if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', init);
+            } else {
+                    init();
+            }
+        </script>
+    </body>
+</html>
